@@ -1,21 +1,26 @@
 import { Coord, Tile, Token } from "./types";
-import { asIndex } from "./utils";
+import { asIndex, range } from "./utils";
+
+type UpdateEvent = (tiles: Tile[]) => void;
 
 export class Board {
-  private state: Token[] = []; // Sparse. May begin with empty spaces.
-  private onUpdate: (tile: Tile) => void;
+  private state: Token[] = range(64).map(() => "Empty");
+  private onUpdate: UpdateEvent;
 
-  constructor(onUpdate: (tile: Tile) => void) {
+  constructor(onUpdate: UpdateEvent) {
     this.onUpdate = onUpdate;
   }
 
   get(coord: Coord): Tile {
-    const token = this.state[asIndex(coord)] ?? "Empty";
+    const token = this.state[asIndex(coord)];
     return { coord, token };
   }
 
-  set(tile: Tile) {
-    this.state[asIndex(tile.coord)] = tile.token;
-    this.onUpdate(tile);
+  set(tiles: Tile[]) {
+    tiles.forEach((tile) => {
+      this.state[asIndex(tile.coord)] = tile.token;
+    });
+
+    this.onUpdate(tiles);
   }
 }
