@@ -1,5 +1,18 @@
+import { Tile, Token } from "./types";
+import { asIndex } from "./utils";
+
+const ICONS: Record<Token, string> = {
+  Black: "⚫",
+  White: "⚪",
+  Empty: "",
+};
+
 export class Interface {
   private elements: HTMLDivElement[] = [];
+
+  set(tile: Tile) {
+    this.elements[asIndex(tile.coord)].innerText = ICONS[tile.token];
+  }
 
   constructor() {
     // Build the 64 cells, holding reference to each.
@@ -10,8 +23,6 @@ export class Interface {
 
       // Token needs to be a separate element to center it within the space.
       const tokenEl = cell.appendChild(document.createElement("div"));
-      tokenEl.innerText = "⚪";
-      // "⚫"
 
       this.elements.push(tokenEl);
     }
