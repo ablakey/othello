@@ -32,10 +32,22 @@ html {
   container-type: inline-size;
 }
 
-.frame > div {
-  border: 1px solid red;
-  color: white;
-
-  width: 100%;
+.board {
+  display: grid;
   height: 100%;
+  grid-template-columns: repeat(8, 1fr);
+  container-type: inline-size;
+}
+
+.cell {
+  background-color: #277714;
+  border: 0.3cqw solid #003e11;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cell > div {
+  font-size: 10cqw;
+  margin: -1cqw;
 }
