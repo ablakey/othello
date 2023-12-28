@@ -5,6 +5,9 @@ const ICONS: Record<Token, string> = {
   Black: "⚫",
   White: "⚪",
   Empty: "",
+  Check: "✅",
+  Computer: "🖥️",
+  Player: "🧑‍🚀",
 };
 
 export class Interface {

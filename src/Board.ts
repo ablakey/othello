@@ -4,11 +4,16 @@ import { asIndex, range } from "./utils";
 type UpdateEvent = (tiles: Tile[]) => void;
 
 export class Board {
-  private state: Token[] = range(64).map(() => "Empty");
+  private state: Token[] = [];
   private onUpdate: UpdateEvent;
 
   constructor(onUpdate: UpdateEvent) {
     this.onUpdate = onUpdate;
+    this.clear();
+  }
+
+  clear() {
+    this.state = range(64).map(() => "Empty");
   }
 
   get(coord: Coord): Tile {

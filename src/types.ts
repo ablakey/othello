@@ -1,4 +1,4 @@
-export type Token = "Black" | "White" | "Empty";
+export type Token = "Black" | "White" | "Empty" | "Player" | "Computer" | "Check";
 
 export type Coord = [number, number];
 
