@@ -1,8 +1,8 @@
-import { Game } from "./Game";
+import { Board } from "./Board";
 
 function main() {
-  const game = new Game();
-  game.reset();
+  const parentEl = document.querySelector<HTMLDivElement>(".parent")!;
+  const board = new Board(parentEl, [8, 8]);
 }
 
 window.onload = main;
