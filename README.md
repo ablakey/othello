@@ -1,4 +1,4 @@
-# RENAME_ME
+# Othello_ME
 
 
 

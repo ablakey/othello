@@ -1,13 +1,17 @@
-import { range } from "./utils";
+import { asIndex, fromIndex, range } from "./utils";
 
 export type Coord = [number, number];
 
+type BoardClickCallback = (coord: Coord, value: string) => void;
+
 export class Board {
   private elements: HTMLDivElement[] = [];
+  private clickEvent?: (coord: Coord, value: string) => void;
   width: number;
   height: number;
 
-  constructor(parent: HTMLDivElement, dimensions: Coord) {
+  constructor(parent: HTMLDivElement, dimensions: Coord, onClick?: BoardClickCallback) {
+    this.clickEvent = onClick;
     this.width = dimensions[0];
     this.height = dimensions[1];
 
@@ -36,7 +40,7 @@ export class Board {
 
     frame.appendChild(board);
 
-    range(this.width * this.height).forEach(() => {
+    range(this.width * this.height).forEach((i) => {
       const inner = document.createElement("div");
       inner.style.cssText = `
         margin: -10cqw;
@@ -51,22 +55,40 @@ export class Board {
         align-items: center;
       `;
 
+      cell.addEventListener("click", () => {
+        // Do not dispatch a click even if animating. Animating cells are effectively frozen.
+        if (!Board.isAnimating(cell)) {
+          this.clickEvent?.(fromIndex(i), inner.innerText);
+        }
+      });
+
       cell.appendChild(inner);
       board.appendChild(cell);
       this.elements.push(cell);
     });
   }
 
-  get(coord: Coord) {
-    return this.elements[coord[1] * this.width + coord[0]].innerText;
+  private static isAnimating(el: HTMLDivElement) {
+    return el.getAnimations().filter((a) => a.playState !== "finished").length > 0;
   }
 
+  /**
+   * Get a coordinate's current value. If an animation is ongoing, this will return the currently viewable value. In
+   * this sense, the value of any cell is determined at the end of the animation, not when it is `set`.
+   */
+  get(coord: Coord) {
+    return this.elements[asIndex(coord)].innerText;
+  }
+
+  /**
+   * Set a cell value. This will trigger an animation.
+   */
   set(coord: Coord, value: string) {
-    const el = this.elements[coord[1] * this.width + coord[0]];
+    const el = this.elements[asIndex(coord)];
     const inner = el.children[0] as HTMLDivElement;
 
     // Do not allow changing if it's currently animating.
-    if (el.getAnimations().filter((a) => a.playState !== "finished").length) {
+    if (Board.isAnimating(el)) {
       return;
     }
 
