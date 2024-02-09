@@ -1,17 +1,20 @@
 import { Board, Coord } from "./Board";
 
-function main() {
-  function onClick(coord: Coord, value: string) {
-    console.log(coord, value);
-  }
+async function main() {
   const parentEl = document.querySelector<HTMLDivElement>(".parent")!;
   const board = new Board(parentEl, [8, 8], onClick);
 
-  board.set([0, 0], "🥸");
-  // board.set([4, 5], "😡");
-  setInterval(() => {
-    board.set([0, 0], "🥺");
-  }, 200);
+  await board.set([1, 1], "⚪");
+  await board.set([2, 1], "⚪");
+  await board.set([3, 1], "⚪");
+
+  function onClick(coord: Coord, value: string) {
+    if (value !== "⚪") {
+      board.set(coord, "⚪");
+    } else if (value === "⚪") {
+      board.set(coord, "⚫");
+    }
+  }
 }
 
 window.onload = main;

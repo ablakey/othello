@@ -56,20 +56,13 @@ export class Board {
       `;
 
       cell.addEventListener("click", () => {
-        // Do not dispatch a click even if animating. Animating cells are effectively frozen.
-        if (!Board.isAnimating(cell)) {
-          this.clickEvent?.(fromIndex(i), inner.innerText);
-        }
+        this.clickEvent?.(fromIndex(i), inner.innerText);
       });
 
       cell.appendChild(inner);
       board.appendChild(cell);
       this.elements.push(cell);
     });
-  }
-
-  private static isAnimating(el: HTMLDivElement) {
-    return el.getAnimations().filter((a) => a.playState !== "finished").length > 0;
   }
 
   /**
@@ -83,37 +76,27 @@ export class Board {
   /**
    * Set a cell value. This will trigger an animation.
    */
-  set(coord: Coord, value: string) {
+  async set(coord: Coord, value: string) {
     const el = this.elements[asIndex(coord)];
     const inner = el.children[0] as HTMLDivElement;
 
-    // Do not allow changing if it's currently animating.
-    if (Board.isAnimating(el)) {
-      return;
-    }
-
     const animFull: Keyframe = { fontSize: "10cqw" };
     const animNone: Keyframe = { fontSize: "0cqw" };
-    const animOptions: KeyframeAnimationOptions = { duration: 250, fill: "both" };
+    const animOptions: KeyframeAnimationOptions = { duration: 2000, fill: "both" };
 
-    // Add token?
+    // Wait for previous animations to complete?
+    await Promise.all(el.getAnimations().map((a) => a.finished));
+
+    // Remove?
+    if (inner.innerText) {
+      await el.animate([animFull, animNone], animOptions).finished;
+      inner.innerText = "";
+    }
+
+    // Add?
     if (!inner.innerText && value) {
-      el.animate([animNone, animFull], animOptions);
       inner.innerText = value;
-    } else if (inner.innerText) {
-      const animation = el.animate([animFull, animNone], animOptions);
-
-      // When removing the token finishes, clear the text and possibly add another token.
-      animation.addEventListener(
-        "finish",
-        () => {
-          inner.innerText = "";
-          if (value) {
-            el.animate([animNone, animFull], animOptions);
-          }
-        },
-        { once: true },
-      );
+      await el.animate([animNone, animFull], animOptions).finished;
     }
   }
 }
