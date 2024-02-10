@@ -1,17 +1,24 @@
 import { asIndex, fromIndex, range } from "./utils";
 
 export type Coord = [number, number];
+export type Square = [Coord, string];
+type BoardClickCallback = (position: Square) => void;
 
-type BoardClickCallback = (coord: Coord, value: string) => void;
+const DEFAULT_BG_COLOUR = "#1e5c0f";
+const DEFAULT_BORDER_COLOUR = "#00330e";
 
 export class Board {
   private elements: HTMLDivElement[] = [];
-  private clickEvent?: (coord: Coord, value: string) => void;
+  private clickEvent?: (position: Square) => void;
   width: number;
   height: number;
 
-  constructor(parent: HTMLDivElement, dimensions: Coord, onClick?: BoardClickCallback) {
-    this.clickEvent = onClick;
+  constructor(
+    parent: HTMLDivElement,
+    dimensions: Coord,
+    options?: { onClick?: BoardClickCallback; bgColour?: string; borderColour?: string },
+  ) {
+    this.clickEvent = options?.onClick;
     this.width = dimensions[0];
     this.height = dimensions[1];
 
@@ -48,15 +55,15 @@ export class Board {
 
       const cell = document.createElement("div");
       cell.style.cssText = `
-        background-color: #1e5c0f;
-        border: 0.3cqw solid #00330e;
+        background-color: ${options?.bgColour ?? DEFAULT_BG_COLOUR};
+        border: 0.3cqw solid ${options?.borderColour ?? DEFAULT_BORDER_COLOUR};
         display: flex;
         justify-content: center;
         align-items: center;
       `;
 
       cell.addEventListener("click", () => {
-        this.clickEvent?.(fromIndex(i), inner.innerText);
+        this.clickEvent?.([fromIndex(i), inner.innerText]);
       });
 
       cell.appendChild(inner);
@@ -66,23 +73,31 @@ export class Board {
   }
 
   /**
-   * Get a coordinate's current value. If an animation is ongoing, this will return the currently viewable value. In
-   * this sense, the value of any cell is determined at the end of the animation, not when it is `set`.
+   * Return the state of a coordinate. If it is outside the board, return null.
+   * An empty square will be a blank string.
    */
-  get(coord: Coord) {
+  get(coord: Coord): string | null {
+    if (coord[0] >= this.width || coord[0] < 0 || coord[1] >= this.height || coord[1] < 0) {
+      return null;
+    }
     return this.elements[asIndex(coord)].innerText;
   }
 
-  /**
-   * Set a cell value. This will trigger an animation.
-   */
-  async set(coord: Coord, value: string) {
+  async set(moves: Square[]) {
+    for (const m of moves) {
+      await this.setOne(...m);
+    }
+  }
+
+  private async setOne(coord: Coord, value: string) {
     const el = this.elements[asIndex(coord)];
     const inner = el.children[0] as HTMLDivElement;
 
     const animFull: Keyframe = { fontSize: "10cqw" };
     const animNone: Keyframe = { fontSize: "0cqw" };
-    const animOptions: KeyframeAnimationOptions = { duration: 2000, fill: "both" };
+    const animOptions: KeyframeAnimationOptions = { duration: 125, fill: "both" };
+
+    // Need to await for mutex.
 
     // Wait for previous animations to complete?
     await Promise.all(el.getAnimations().map((a) => a.finished));
