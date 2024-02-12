@@ -2,14 +2,14 @@ import { asIndex, fromIndex, range } from "./utils";
 
 export type Coord = [number, number];
 export type Cell<T extends string> = [Coord, T];
-type BoardClickCallback<T extends string> = (position: Cell<T>) => void;
+type BoardClickCallback<T extends string> = (cell: Cell<T>) => void;
 
 const DEFAULT_BG_COLOUR = "#1e5c0f";
 const DEFAULT_BORDER_COLOUR = "#00330e";
 
 export class Board<T extends string> {
   private elements: HTMLDivElement[] = [];
-  private clickEvent?: (position: Cell<T>) => void;
+  private clickEvent?: BoardClickCallback<T>;
   width: number;
   height: number;
 

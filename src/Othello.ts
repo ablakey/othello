@@ -21,16 +21,16 @@ const INITIAL_BOARD: Cell<Piece>[] = [
   [[4, 4], Black],
 ];
 
-const Directions = {
-  TopLeft: [-1, -1],
-  Top: [0, -1],
-  TopRight: [1, -1],
-  Right: [1, 0],
-  BotRight: [1, 1],
-  Bot: [0, 1],
-  BotLeft: [-1, 1],
-  Left: [-1, 0],
-} satisfies Record<string, Coord>;
+const DIRECTIONS: Coord[] = [
+  [-1, -1],
+  [0, -1],
+  [1, -1],
+  [1, 0],
+  [1, 1],
+  [0, 1],
+  [-1, 1],
+  [-1, 0],
+];
 
 export class Othello {
   private board: Board<Black | White | Empty>;
@@ -38,53 +38,42 @@ export class Othello {
 
   constructor() {
     const parentEl = document.querySelector<HTMLDivElement>(".parent")!;
-    this.board = new Board(parentEl, [WIDTH, HEIGHT]);
+    this.board = new Board(parentEl, [WIDTH, HEIGHT], { onClick: this.onClick.bind(this) });
   }
 
   async start() {
     await this.board.setMany(INITIAL_BOARD);
-
-    Object.values(Directions).forEach((d) => {
-      this.board.set([3 + d[0], 3 + d[1]], White);
-    });
-
-    // Testing.
-    const result = this.walk([3, 3], Directions.Right, Black);
-    console.log(result);
   }
 
-  // get self() {
-  //   return this.turn;
-  // }
+  async onClick(p: Cell<Piece>) {
+    const move = this.getValidMove(p[0], this.turn);
 
-  // get opponent() {
-  //   return this.turn === White ? Black : White;
-  // }
-
-  getValidMoves() {
-    const player = this.turn;
-    const opponent = this.turn === White ? Black : White;
-    // For every square that's empty
-    // Walk each compass direction
-    // If opponent, append it and keep walking.
-    // If nothing, end and drop
-    // If self and has count, append it.
-    // If self and count is 0, drop it.
-    // At the end we have Cell[][]  where each major array is a list of squares
-    // And the minor array is all the squares
+    if (move.length) {
+      await this.board.set(p[0], this.turn);
+      await this.board.setMany(move);
+      this.turn = this.turn === White ? Black : White;
+    }
   }
 
-  walk(start: Coord, delta: Coord, player: White | Black) {
-    const distance = 1;
+  getValidMove(coord: Coord, player: White | Black) {
+    return DIRECTIONS.map((d) => this.walk(coord, d, player)).flat();
+  }
+
+  walk(coord: Coord, delta: Coord, player: White | Black) {
     const cells: Cell<Piece>[] = [];
+    let distance = 1;
     let last: White | Black | undefined;
 
+    if (this.board.get(coord) !== Empty) {
+      return [];
+    }
+
     while (true) {
-      const x = start[0] + delta[0] * distance;
-      const y = start[1] + delta[1] * distance;
-      const coord: Coord = [x, y];
-      const value = this.board.get(coord);
-      console.log(value);
+      const x = coord[0] + delta[0] * distance;
+      const y = coord[1] + delta[1] * distance;
+      const target: Coord = [x, y];
+      const value = this.board.get(target);
+      distance += 1;
 
       // Left the board, or is an empty space. Stop walking.
       if (value === null || value === Empty) {
@@ -98,14 +87,9 @@ export class Othello {
         break;
       }
 
-      cells.push([coord, value]);
+      cells.push([target, player]);
     }
 
-    if (cells.length && last !== player) {
-      return cells;
-    } else {
-      return null;
-    }
-    // Accept a direction (as a pair of values) and walk it, returning
+    return cells.length && last === player ? cells : [];
   }
 }
