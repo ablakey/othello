@@ -1,22 +1,22 @@
 import { asIndex, fromIndex, range } from "./utils";
 
 export type Coord = [number, number];
-export type Square = [Coord, string];
-type BoardClickCallback = (position: Square) => void;
+export type Cell<T extends string> = [Coord, T];
+type BoardClickCallback<T extends string> = (position: Cell<T>) => void;
 
 const DEFAULT_BG_COLOUR = "#1e5c0f";
 const DEFAULT_BORDER_COLOUR = "#00330e";
 
-export class Board {
+export class Board<T extends string> {
   private elements: HTMLDivElement[] = [];
-  private clickEvent?: (position: Square) => void;
+  private clickEvent?: (position: Cell<T>) => void;
   width: number;
   height: number;
 
   constructor(
     parent: HTMLDivElement,
     dimensions: Coord,
-    options?: { onClick?: BoardClickCallback; bgColour?: string; borderColour?: string },
+    options?: { onClick?: BoardClickCallback<T>; bgColour?: string; borderColour?: string },
   ) {
     this.clickEvent = options?.onClick;
     this.width = dimensions[0];
@@ -63,7 +63,7 @@ export class Board {
       `;
 
       cell.addEventListener("click", () => {
-        this.clickEvent?.([fromIndex(i), inner.innerText]);
+        this.clickEvent?.([fromIndex(i), inner.innerText as T]);
       });
 
       cell.appendChild(inner);
@@ -76,20 +76,20 @@ export class Board {
    * Return the state of a coordinate. If it is outside the board, return null.
    * An empty square will be a blank string.
    */
-  get(coord: Coord): string | null {
+  get(coord: Coord): T | null {
     if (coord[0] >= this.width || coord[0] < 0 || coord[1] >= this.height || coord[1] < 0) {
       return null;
     }
-    return this.elements[asIndex(coord)].innerText;
+    return this.elements[asIndex(coord)].innerText as T;
   }
 
-  async set(moves: Square[]) {
+  async setMany(moves: Cell<T>[]) {
     for (const m of moves) {
-      await this.setOne(...m);
+      await this.set(...m);
     }
   }
 
-  private async setOne(coord: Coord, value: string) {
+  async set(coord: Coord, value: T) {
     const el = this.elements[asIndex(coord)];
     const inner = el.children[0] as HTMLDivElement;
 
