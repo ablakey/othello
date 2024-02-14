@@ -10,10 +10,12 @@
 /* Prevent elastic scrolling on ios */
 html {
   overflow: hidden;
+  background-color: rgb(38, 38, 38);
 }
 
-.parent {
+.table {
+  display: grid;
   min-height: 100%;
-  background-color: rgb(38, 38, 38);
-  position: relative;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8;
 }

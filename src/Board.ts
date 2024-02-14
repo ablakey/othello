@@ -12,15 +12,30 @@ export class Board<T extends string> {
   private clickEvent?: BoardClickCallback<T>;
   width: number;
   height: number;
+  swapSpeed: number;
 
   constructor(
     parent: HTMLDivElement,
     dimensions: Coord,
-    options?: { onClick?: BoardClickCallback<T>; bgColour?: string; borderColour?: string },
+    options?: {
+      onClick?: BoardClickCallback<T>;
+      bgColour?: string;
+      borderColour?: string;
+      swapSpeed?: number;
+    },
   ) {
     this.clickEvent = options?.onClick;
     this.width = dimensions[0];
     this.height = dimensions[1];
+    this.swapSpeed = options?.swapSpeed ?? 125;
+
+    const container = document.createElement("div");
+    container.style.cssText = `
+      min-height: 100%;
+      position: relative;
+    `;
+
+    parent.appendChild(container);
 
     const frame = document.createElement("div");
     frame.style.cssText = `
@@ -36,7 +51,7 @@ export class Board<T extends string> {
       container-type: inline-size;
     `;
 
-    parent.appendChild(frame);
+    container.appendChild(frame);
 
     const board = document.createElement("div");
     board.style.cssText = `
@@ -62,7 +77,7 @@ export class Board<T extends string> {
         align-items: center;
       `;
 
-      cell.addEventListener("click", () => {
+      cell.addEventListener("mouseup", () => {
         this.clickEvent?.([fromIndex(i), inner.innerText as T]);
       });
 
@@ -83,19 +98,35 @@ export class Board<T extends string> {
     return this.elements[asIndex(coord)].innerText as T;
   }
 
+  forEach(callback: (coord: Coord, cell: T) => void) {
+    for (let x = 0; x < this.width; x++) {
+      for (let y = 0; y < this.height; y++) {
+        const cell = this.get([x, y])!; // We never iterate outside bounds. Never null.
+        callback([x, y], cell);
+      }
+    }
+  }
+
+  async setAll(value: T) {
+    this.forEach((c) => this.set(c, value));
+  }
+
   async setMany(moves: Cell<T>[]) {
     for (const m of moves) {
       await this.set(...m);
     }
   }
 
-  async set(coord: Coord, value: T) {
+  async set(coord: Coord, value: T, animate = true) {
     const el = this.elements[asIndex(coord)];
     const inner = el.children[0] as HTMLDivElement;
 
     const animFull: Keyframe = { fontSize: "10cqw" };
     const animNone: Keyframe = { fontSize: "0cqw" };
-    const animOptions: KeyframeAnimationOptions = { duration: 125, fill: "both" };
+    const animOptions: KeyframeAnimationOptions = {
+      duration: animate ? this.swapSpeed : 0,
+      fill: "both",
+    };
 
     // Need to await for mutex.
 
