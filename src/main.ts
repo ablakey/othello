@@ -4,7 +4,7 @@ import { range } from "./utils";
 async function main() {
   const table = document.querySelector<HTMLDivElement>(".table")!;
 
-  const games = range(15).map(() => new Othello(table));
+  const games = range(4).map(() => new Othello(table));
 
   while (true) {
     await Promise.all(games.map((g) => g.restart()));
