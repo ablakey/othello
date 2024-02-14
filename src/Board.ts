@@ -78,7 +78,7 @@ export class Board<T extends string> {
       `;
 
       cell.addEventListener("mouseup", () => {
-        this.clickEvent?.([fromIndex(i), inner.innerText as T]);
+        this.clickEvent?.([fromIndex(i), inner.textContent as T]);
       });
 
       cell.appendChild(inner);
@@ -95,7 +95,7 @@ export class Board<T extends string> {
     if (coord[0] >= this.width || coord[0] < 0 || coord[1] >= this.height || coord[1] < 0) {
       return null;
     }
-    return this.elements[asIndex(coord)].innerText as T;
+    return this.elements[asIndex(coord)].textContent as T;
   }
 
   forEach(callback: (coord: Coord, cell: T) => void) {
@@ -134,14 +134,14 @@ export class Board<T extends string> {
     await Promise.all(el.getAnimations().map((a) => a.finished));
 
     // Remove?
-    if (inner.innerText) {
+    if (inner.textContent) {
       await el.animate([animFull, animNone], animOptions).finished;
-      inner.innerText = "";
+      inner.textContent = "";
     }
 
     // Add?
-    if (!inner.innerText && value) {
-      inner.innerText = value;
+    if (!inner.textContent && value) {
+      inner.textContent = value;
       await el.animate([animNone, animFull], animOptions).finished;
     }
   }

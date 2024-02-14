@@ -58,7 +58,6 @@ export class Othello {
       console.log("play ");
       await sleep(TURN_DELAY);
       await this.playTurn();
-      console.log("playturn", this.gameOver);
       this.turn = this.turn === White ? Black : White;
     }
   }
@@ -67,7 +66,6 @@ export class Othello {
     const moves = this.getAllMoves().slice(0, TOP_MOVE_COUNT);
 
     if (!moves.length) {
-      console.log(moves);
       this.gameOver = true;
       return;
     }
